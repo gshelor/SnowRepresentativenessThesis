@@ -6,3 +6,6 @@
 .httr-oauth
 .DS_Store
 .quarto
+*.csv
+*.nc
+*.tif

@@ -9,3 +9,8 @@
 *.csv
 *.nc
 *.tif
+*.shp
+*.shx
+*.dbf
+*.prj
+*.gpkg

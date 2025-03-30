@@ -1,0 +1,1 @@
+This repo is a place to store mostly my code but potentially data as well that I will write and use for the purposes of completing my masters thesis.

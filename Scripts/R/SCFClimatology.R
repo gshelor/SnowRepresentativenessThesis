@@ -7,7 +7,8 @@ options(mc.cores = parallel::detectCores())
 
 CONUS_AOI <- read_sf(here("Data", "L3_Ecoregions_USB", "CONUS", "CONUS_AOI.gpkg"))
 ### reading in LC raster to serve as basis for reprojections later
-LC_CONUS_2020 <- rast(here("Data", "Landcover", "CONUS", "ESACCI", "Clipped", "LC_CONUS_2020.tif"))
+LC_CONUS_2020 <- rast(here("Data", "Landcover", "CONUS", "ESACCI", "Clipped", "Reclassified", "LC_CONUS_2020.tif"))
+Snotel_CONUS_Annual <- read_sf(here("Data", "SNOTEL", "CONUS", "GIS", "GPKG", "Annual", "SnotelData_CONUS_PeakSWE.gpkg"))
 
 ### listing SCF rasters
 # SCF_files <- list.files(path = here("Data", "SCF"), pattern = "*.tif")
@@ -28,7 +29,7 @@ LC_CONUS_2020 <- rast(here("Data", "Landcover", "CONUS", "ESACCI", "Clipped", "L
 #   writeRaster(temp_scf_crop_rast, here("Data", "SCF", "Resampled", file), overwrite = TRUE)
 # }
 
-
+### 2009, 2018 and also all years before 2003 not available due to either failure of the SnowCloudMetrics GEE code or due to MODIS data not being available because MODIS wasn't launched until 1999
 SCF_2003 <- rast(here("Data", "SCF", "Resampled", "SCF2003US.tif"))
 plot(SCF_2003, main = "Snow Cover Frequency 2003")
 SCF_2004 <- rast(here("Data", "SCF", "Resampled", "SCF2004US.tif"))
@@ -63,7 +64,6 @@ SCF_2019 <- rast(here("Data", "SCF", "Resampled", "SCF2019US.tif"))
 plot(SCF_2019, main = "Snow Cover Frequency 2019")
 SCF_2020 <- rast(here("Data", "SCF", "Resampled", "SCF2020US.tif"))
 plot(SCF_2020, main = "Snow Cover Frequency 2020")
-
 
 SCF_rasts_allyears <- c(SCF_2003, SCF_2004, SCF_2005, SCF_2006, SCF_2007, SCF_2008, SCF_2010, SCF_2011, SCF_2012, SCF_2013, SCF_2014, SCF_2015, SCF_2016, SCF_2017, SCF_2019, SCF_2020)
 

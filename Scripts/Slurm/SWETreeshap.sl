@@ -17,7 +17,7 @@
 #
 # Name: SWETreeshap
 #
-# Purpose: Run a containerized R 16 job.
+# Purpose: Run a containerized R job.
 #
 # Input: This batch script takes an R input file as an argument.
 #

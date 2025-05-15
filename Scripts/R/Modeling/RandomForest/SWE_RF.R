@@ -3,7 +3,7 @@
 
 ##### Loading packages #####
 library(pacman)
-p_load(here, tidyverse, randomForest, ranger, ModelMetrics, gt, gtExtras, sf, terra, lime, sfext, rsample, caret, parallel, grateful, ModelMetrics)
+p_load(here, tidyverse, randomForest, ranger, ModelMetrics, gt, gtExtras, sf, terra, lime, sfext, rsample, caret, parallel, grateful, ModelMetrics, Metrics)
 options(mc.cores = parallel::detectCores())
 
 ##### reading in data #####
@@ -151,6 +151,7 @@ tune_grid_OctAprAspect_Nosradtmin_rf <- expand.grid(
   # min.node.size = seq(5, 25, by = 1)
 )
 
+##### Tune grid final model #####
 tune_grid_OctAprAspect_Nosradtmintmax_rf <- expand.grid(
   ### Tune mtry (number of variables randomly sampled)
   mtry = seq(2, ncol(train_OctAprAspect_Nosradtmintmax_x) - 1, by = 1) #,
@@ -256,16 +257,52 @@ tune_grid_SepMayAspect_Notmintmax_rf <- expand.grid(
   # min.node.size = seq(5, 25, by = 1)
 )
 
-### Training Control with Cross-Validation
+##### Training Control with Cross-Validation #####
 tune_control_rf <- trainControl(
   method = "oob", # out of bag
-  number = 10, # 10-fold cross-validation
+  number = 20, # 10-fold cross-validation
   # repeats = 3, # Repeat cross-validation 3 times (more robust)
   verboseIter = TRUE, # Print progress during training
   returnData = FALSE, # Don't save the training data (saves memory)
   savePredictions = "none", # Save predictions from the best model
   returnResamp = "final", # Save resampling results from the best model
   allowParallel = TRUE # Enable parallel processing (if available)
+)
+
+tune_control_loocv_rf <- trainControl(
+  method = "LOOCV", # leave one out CV
+  number = 20, # 10-fold cross-validation
+  # repeats = 3, # Repeat cross-validation 3 times (more robust)
+  verboseIter = TRUE, # Print progress during training
+  returnData = FALSE, # Don't save the training data (saves memory)
+  savePredictions = "none", # Save predictions from the best model
+  returnResamp = "final", # Save resampling results from the best model
+  allowParallel = TRUE, # Enable parallel processing (if available)
+  predictionBounds = c(0, NA)
+)
+
+tune_control_boot_rf <- trainControl(
+  method = "boot_all", # out of bag
+  number = 20, # 10-fold cross-validation
+  # repeats = 3, # Repeat cross-validation 3 times (more robust)
+  verboseIter = TRUE, # Print progress during training
+  returnData = FALSE, # Don't save the training data (saves memory)
+  savePredictions = "none", # Save predictions from the best model
+  returnResamp = "final", # Save resampling results from the best model
+  allowParallel = TRUE, # Enable parallel processing (if available)
+  predictionBounds = c(0, NA)
+)
+
+tune_control_rf <- trainControl(
+  method = "cv", # out of bag
+  number = 20, # 10-fold cross-validation
+  # repeats = 3, # Repeat cross-validation 3 times (more robust)
+  verboseIter = TRUE, # Print progress during training
+  returnData = FALSE, # Don't save the training data (saves memory)
+  savePredictions = "none", # Save predictions from the best model
+  returnResamp = "final", # Save resampling results from the best model
+  allowParallel = TRUE, # Enable parallel processing (if available)
+  predictionBounds = c(0, NA)
 )
 
 ### Train the Random Forest Model
@@ -365,7 +402,7 @@ RF_model9 <- train(
   importance = TRUE,
   n.tree = 2500
 )
-### Model 10, OctApr aggregates and aspect, no srad or tmin or tmax
+##### Model 10, OctApr aggregates and aspect, no srad or tmin or tmax #####
 set.seed(802)
 RF_model10 <- train(
   x = train_OctAprAspect_Nosradtmintmax_x,
@@ -476,25 +513,25 @@ RF_model19 <- train(
   n.tree = 2500
 )
 ##### saving model to avoid fitting it again #####
-saveRDS(RF_model1, file = here("Data", "FittedModels", "Caret", "RF", "OctApr_RFModel.rds"))
-saveRDS(RF_model2, file = here("Data", "FittedModels", "Caret", "RF", "OctMay_RFModel.rds"))
-saveRDS(RF_model3, file = here("Data", "FittedModels", "Caret", "RF", "SepMay_RFModel.rds"))
-saveRDS(RF_model4, file = here("Data", "FittedModels", "Caret", "RF", "OctAprDecFeb_RFModel.rds"))
-saveRDS(RF_model5, file = here("Data", "FittedModels", "Caret", "RF", "OctMayDecFeb_RFModel.rds"))
-saveRDS(RF_model6, file = here("Data", "FittedModels", "Caret", "RF", "SepMayDecFeb_RFModel.rds"))
-saveRDS(RF_model7, file = here("Data", "FittedModels", "Caret", "RF", "OctAprAspect_RFModel.rds"))
-saveRDS(RF_model8, file = here("Data", "FittedModels", "Caret", "RF", "OctAprAspect_Nosrad_RFModel.rds"))
-saveRDS(RF_model9, file = here("Data", "FittedModels", "Caret", "RF", "OctAprAspect_Nosradtmin_RFModel.rds"))
-saveRDS(RF_model10, file = here("Data", "FittedModels", "Caret", "RF", "OctAprAspect_Nosradtmintmax_RFModel.rds"))
-saveRDS(RF_model11, file = here("Data", "FittedModels", "Caret", "RF", "OctAprAspect_Notmin_RFModel.rds"))
-saveRDS(RF_model12, file = here("Data", "FittedModels", "Caret", "RF", "OctAprAspect_Notmintmax_RFModel.rds"))
-saveRDS(RF_model13, file = here("Data", "FittedModels", "Caret", "RF", "OctAprAspect_Notmax_RFModel.rds"))
-saveRDS(RF_model14, file = here("Data", "FittedModels", "Caret", "RF", "OctMayAspect_Nosradtmin_RFModel.rds"))
-saveRDS(RF_model15, file = here("Data", "FittedModels", "Caret", "RF", "OctMayAspect_Nosradtmintmax_RFModel.rds"))
-saveRDS(RF_model16, file = here("Data", "FittedModels", "Caret", "RF", "OctMayAspect_Notmintmax_RFModel.rds"))
-saveRDS(RF_model17, file = here("Data", "FittedModels", "Caret", "RF", "SepMayAspect_Nosradtmin_RFModel.rds"))
-saveRDS(RF_model18, file = here("Data", "FittedModels", "Caret", "RF", "SepMayAspect_Nosradtmintmax_RFModel.rds"))
-saveRDS(RF_model19, file = here("Data", "FittedModels", "Caret", "RF", "SepMayAspect_Notmintmax_RFModel.rds"))
+saveRDS(RF_model1, file = here("Data", "FittedModels", "Caret", "RF", "OctApr_RFModel_1km.rds"))
+saveRDS(RF_model2, file = here("Data", "FittedModels", "Caret", "RF", "OctMay_RFModel_1km.rds"))
+saveRDS(RF_model3, file = here("Data", "FittedModels", "Caret", "RF", "SepMay_RFModel_1km.rds"))
+saveRDS(RF_model4, file = here("Data", "FittedModels", "Caret", "RF", "OctAprDecFeb_RFModel_1km.rds"))
+saveRDS(RF_model5, file = here("Data", "FittedModels", "Caret", "RF", "OctMayDecFeb_RFModel_1km.rds"))
+saveRDS(RF_model6, file = here("Data", "FittedModels", "Caret", "RF", "SepMayDecFeb_RFModel_1km.rds"))
+saveRDS(RF_model7, file = here("Data", "FittedModels", "Caret", "RF", "OctAprAspect_RFModel_1km.rds"))
+saveRDS(RF_model8, file = here("Data", "FittedModels", "Caret", "RF", "OctAprAspect_Nosrad_RFModel_1km.rds"))
+saveRDS(RF_model9, file = here("Data", "FittedModels", "Caret", "RF", "OctAprAspect_Nosradtmin_RFModel_1km.rds"))
+saveRDS(RF_model10, file = here("Data", "FittedModels", "Caret", "RF", "OctAprAspect_Nosradtmintmax_RFModel_1km.rds"))
+saveRDS(RF_model11, file = here("Data", "FittedModels", "Caret", "RF", "OctAprAspect_Notmin_RFModel_1km.rds"))
+saveRDS(RF_model12, file = here("Data", "FittedModels", "Caret", "RF", "OctAprAspect_Notmintmax_RFModel_1km.rds"))
+saveRDS(RF_model13, file = here("Data", "FittedModels", "Caret", "RF", "OctAprAspect_Notmax_RFModel_1km.rds"))
+saveRDS(RF_model14, file = here("Data", "FittedModels", "Caret", "RF", "OctMayAspect_Nosradtmin_RFModel_1km.rds"))
+saveRDS(RF_model15, file = here("Data", "FittedModels", "Caret", "RF", "OctMayAspect_Nosradtmintmax_RFModel_1km.rds"))
+saveRDS(RF_model16, file = here("Data", "FittedModels", "Caret", "RF", "OctMayAspect_Notmintmax_RFModel_1km.rds"))
+saveRDS(RF_model17, file = here("Data", "FittedModels", "Caret", "RF", "SepMayAspect_Nosradtmin_RFModel_1km.rds"))
+saveRDS(RF_model18, file = here("Data", "FittedModels", "Caret", "RF", "SepMayAspect_Nosradtmintmax_RFModel_1km.rds"))
+saveRDS(RF_model19, file = here("Data", "FittedModels", "Caret", "RF", "SepMayAspect_Notmintmax_RFModel_1km.rds"))
 
 ##### Examine the Best Parameters and Results #####
 ### Model 1
@@ -552,10 +589,26 @@ set.seed(802)
 RF_model9_preds <- predict(RF_model9, test_OctAprAspect_Nosradtmin_x)
 rmse(test_y, RF_model9_preds)
 ### Model 10
+##### Final Model #####
+RF_model10 <- read_rds(here("Data", "FittedModels", "Caret", "RF", "OctAprAspect_Nosradtmintmax_RFModel_1km.rds"))
 print(RF_model10$bestTune)
 print(RF_model10$results)
 set.seed(802)
 RF_model10_preds <- predict(RF_model10, test_OctAprAspect_Nosradtmintmax_x)
+set.seed(802)
+Snotel_SWEpreds <- Snotel_df |>
+  mutate(SWE_preds = predict(RF_model10, Snotel_df),
+         SWE_ae = ae(peak_swe, SWE_preds)) |>
+  select(site_id, site_name, state, WaterYear, peak_swe, SWE_preds, SWE_ae)
+Snotel_SWEpreds_WYErrorMeans <- Snotel_SWEpreds |>
+  dplyr::group_by(WaterYear) |>
+  summarise(mean_SWE_ae = mean(SWE_ae),
+            median_SWE_ae = median(SWE_ae))
+plot(Snotel_SWEpreds$peak_swe, Snotel_SWEpreds$SWE_ae, main = "SNOTEL Peak SWE Value on X-axis, Absolute Error of Predictions on Y")
+hist(Snotel_SWEpreds$SWE_ae, main = "Histogram of Absolute Error at All Annual SNOTEL Sites")
+plot(Snotel_SWEpreds$WaterYear, Snotel_SWEpreds$SWE_ae, main = "Water Year on X-axis, Absolute Error of Predictions on Y")
+plot(Snotel_SWEpreds_WYErrorMeans$WaterYear, Snotel_SWEpreds_WYErrorMeans$mean_SWE_ae, main = "Water Year on X-axis, Mean Absolute Error of Predictions on Y")
+plot(Snotel_SWEpreds_WYErrorMeans$WaterYear, Snotel_SWEpreds_WYErrorMeans$median_SWE_ae, main = "Water Year on X-axis, Median Absolute Error of Predictions on Y")
 rmse(test_y, RF_model10_preds)
 ### Model 11
 print(RF_model11$bestTune)
@@ -611,14 +664,5 @@ print(RF_model19$results)
 set.seed(802)
 RF_model19_preds <- predict(RF_model19, test_SepMayAspect_Notmintmax_x)
 rmse(test_y, RF_model19_preds)
-# plot(RF_model) # Plot tuning results
-# varImp(RF_model) # Display variable importance
 
-##### Stacking Rasters for making spatial predictions #####
-### filling NAs with -999 to see if that will fix terra prediction issue
-### have to do it in this order otherwise caret won't let me do spatial predictions. this isn't a problem when I don't use caret!
-### filling NAs with -999 to see if that will fix terra prediction issue
-# Prediction_Rasters_noNAs <- subst(Prediction_Rasters, NA, -999)
-# Prediction_Rasters_noNAs <- c(Prediction_Rasters_noNAs, CONUS_LCClim_Pred_rast)
-# Prediction_Rasters_noNAs
-# names(Prediction_Rasters_noNAs) <- c("OctApr_prcpSumCDMSum", "OctApr_tmeanCDMSum", "elevation", "slope", "OctApr_tminMean", "OctApr_tmaxMean", "OctApr_sradMean")
+
